@@ -8,6 +8,10 @@
 #include <forward_list>
 #include <unordered_map>
 #include <limits>
+#include <algorithm>
+#include <stack>
+#include <queue>
+#include <unordered_set>
 
 namespace utec {
     template<typename KeyType, typename ValueType, typename WeightType>
@@ -19,6 +23,17 @@ namespace utec {
         // Implementación de atributos
         std::unordered_map<KeyType, ItemType> vertices;
         std::vector<AdjacentListType> buckets;
+        // Funcion privada get_key
+        KeyType get_key(size_t index) {
+            auto it = std::find_if(
+                    begin(vertices), end(vertices),
+                    [index](auto item) {
+                       return item.second.first == index;
+                    });
+            if (it != end(vertices))
+                return it->first;
+            return KeyType{};
+        }
     public:
         graph() = default;
 
@@ -74,9 +89,55 @@ namespace utec {
 
         template<typename UnaryFunction>
         void bfs(KeyType key, UnaryFunction fn) {
-
+            // Estructuras que se utilizar
+            std::queue<size_t> q;
+            std::unordered_set<size_t> visited;
+            // agrega el valor seleccionada al queue y visited
+            auto idx = vertices[key].first;
+            q.push(idx);
+            visited.insert(idx);
+            while (!q.empty()) {
+                idx = q.front();
+                fn(get_key(idx));
+                q.pop();
+                for (const auto& adj: buckets[idx]) {
+                    if (visited.insert(adj.first).second) {
+                        q.push(adj.first);
+                    }
+                }
+            }
         }
+        template<typename UnaryFunction>
+        void dfs(KeyType key, UnaryFunction fn) {
+            // Estructuras
+            std::stack<size_t> s;
+            std::unordered_set<size_t> visited;
+            // El vertice seleccionando
+            auto idx = vertices[key].first;
+            // Agregar el vertice seleccionado al stack y visited
+            s.push(idx);
+            visited.insert(idx);
+            while (!s.empty()) {
+                // Paso # 3
+                auto actual = s.top();
+                // Paso # 4
+                auto adj_list = buckets[actual];
+                // Buscar el primer no visitado
+                auto it = std::find_if(
+                        begin(adj_list), end(adj_list),
+                        [&visited](const auto& adj) {
+                            return !visited.contains(adj.first);
+                        });
+                if (it != std::end(adj_list)) { // No visitado
+                    s.push(it->first);
+                    visited.insert(it->first);
+                } else {
+                    fn(get_key(actual));
+                    s.pop();
+                }
 
+            }
+        }
     };
 }
 

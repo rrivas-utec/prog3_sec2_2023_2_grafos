@@ -19,7 +19,13 @@ void ejemplo_1() {
     // Leer el peso de una arista
     std::cout << g1.get_edge('B', 'C') << std::endl;    // 7
 
-//    g1.bfs('A', [](auto ))
+    g1.bfs('A', [](auto key) {
+        std::cout << key << " ";
+    });
+    std::cout << std::endl;
+    g1.dfs('A', [](auto key) {
+        std::cout << key << " ";
+    });
 }
 
 
